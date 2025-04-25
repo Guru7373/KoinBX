@@ -8,11 +8,19 @@
 import SwiftUI
 
 struct AvailableBalanceView: View {
+    let balance: Double
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-    }
-}
+        HStack {
+            Text("Available:")
+                .font(.footnote)
+                .foregroundColor(.gray)
+            
+            Text(balance.formatted(.number.precision(.fractionLength(0...5))) + " BTC")
+                .font(.footnote)
+                .foregroundStyle(Color.primaryText)
 
-#Preview {
-    AvailableBalanceView()
+            Spacer()
+        }
+    }
 }

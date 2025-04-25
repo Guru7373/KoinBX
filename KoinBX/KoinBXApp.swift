@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct KoinBXApp: App {
+    
+    @StateObject private var viewModel = TradeViewModel()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            TradeView()
+                .environmentObject(viewModel)
         }
     }
 }

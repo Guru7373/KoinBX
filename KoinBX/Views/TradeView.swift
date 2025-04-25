@@ -8,11 +8,37 @@
 import SwiftUI
 
 struct TradeView: View {
+    
+    @EnvironmentObject private var viewModel: TradeViewModel
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        GeometryReader { geo in
+            HStack(alignment: .top, spacing: 0) {
+                OrderBookView()
+                    .frame(width: geo.size.width * 0.4)
+                
+                TradeFormView()
+                    .padding()
+            }
+            .frame(maxHeight: .infinity)
+            .background(Color.mainViewBG)
+            .foregroundStyle(Color.primaryText)
+            .onTapGesture {
+                dismissKeyboard()
+            }
+        }
     }
 }
 
 #Preview {
-    TradeView()
+    TradeViewPreview()
+}
+
+private struct TradeViewPreview: View {
+    @StateObject private var viewModel = TradeViewModel()
+    
+    var body: some View {
+        TradeView()
+            .environmentObject(viewModel)
+    }
 }
