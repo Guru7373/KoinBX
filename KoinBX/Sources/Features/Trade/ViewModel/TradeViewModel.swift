@@ -11,6 +11,7 @@ enum Field: Equatable {
     case price, amount, total
 }
 
+@MainActor
 final class TradeViewModel: ObservableObject {
     /// The currently selected trade type (buy or sell).
     @Published var selectedTradeType: TradeType = .buy
@@ -41,9 +42,9 @@ final class TradeViewModel: ObservableObject {
     }
 
     /// List of recorded buy trades. Shows only the five most recent, sorted by price descending.
-    @Published var buyRecords: [TradeEntry] = []
+//    @Published var buyRecords: [TradeEntry] = []
     /// List of recorded sell trades. Shows only the five most recent, sorted by price descending.
-    @Published var sellRecords: [TradeEntry] = []
+//    @Published var sellRecords: [TradeEntry] = []
 
     /// Simulated user balance for validating and subtracting trade totals.
     var availableBalance: Double = 1000.0
@@ -53,22 +54,42 @@ final class TradeViewModel: ObservableObject {
     /// Tracks which input field (price, amount, or total) is currently being edited.
     private var isEditing: Field? = nil
 
+    @Published var orderBook: OrderBookResponse?
+    @Published var errorMessage: String?
+    
+    @Published var isLoading = false
+    
+    func loadOrderBook() async {
+        do {
+            let orderBook = try await TradeService.fetchOrderBook(marketPair: "ADA_BTC", depth: 5)
+            self.orderBook = orderBook
+            isLoading = false
+        } catch {
+            isLoading = false
+            self.errorMessage = error.localizedDescription
+        }
+    }
+    
     init() {
-        loadInitialData()
+        Task {
+            isLoading = true
+            await loadOrderBook()
+        }
+//        loadInitialData()
     }
     
     /// Loads static initial buy and sell records for demonstration or testing.
-    private func loadInitialData() {
-        buyRecords = [TradeEntry(price: 26798.15, amount: 0.03264, type: .buy),
-                      TradeEntry(price: 26798.13, amount: 0.00728, type: .buy),
-                      TradeEntry(price: 26797.95, amount: 0.092166, type: .buy),
-                      TradeEntry(price: 26797.2, amount: 0.0228, type: .buy)]
-
-        sellRecords = [TradeEntry(price: 26801.34, amount: 0.15046, type: .sell),
-                      TradeEntry(price: 26800.5, amount: 0.0161, type: .sell),
-                      TradeEntry(price: 26799.9, amount: 0.19425, type: .sell),
-                       TradeEntry(price: 26799.15, amount: 0.03852, type: .sell)]
-    }
+//    private func loadInitialData() {
+//        buyRecords = [TradeEntry(price: 26798.15, amount: 0.03264, type: .buy),
+//                      TradeEntry(price: 26798.13, amount: 0.00728, type: .buy),
+//                      TradeEntry(price: 26797.95, amount: 0.092166, type: .buy),
+//                      TradeEntry(price: 26797.2, amount: 0.0228, type: .buy)]
+//
+//        sellRecords = [TradeEntry(price: 26801.34, amount: 0.15046, type: .sell),
+//                      TradeEntry(price: 26800.5, amount: 0.0161, type: .sell),
+//                      TradeEntry(price: 26799.9, amount: 0.19425, type: .sell),
+//                       TradeEntry(price: 26799.15, amount: 0.03852, type: .sell)]
+//    }
 
     /// Increments the price by the defined precision and rounds it.
     func incrementPrice() {
@@ -110,22 +131,28 @@ final class TradeViewModel: ObservableObject {
     }
 
     /// Creates a new trade entry based on user input and order type. Adds it to the respective list and resets the input fields.
-    func submitTrade() {
-        let entry = TradeEntry(price: price, amount: selectedOrderType == .market ? currencyPrice : amount, type: selectedTradeType)
-
+    func submitTrade() async {
+//        let entry = TradeEntry(price: price, amount: selectedOrderType == .market ? currencyPrice : amount, type: selectedTradeType)
+        isLoading = true
+        
+        try? await Task.sleep(nanoseconds: 2 * 1_000_000_000)
+        
         switch selectedTradeType {
         case .buy:
-            buyRecords.insert(entry, at: 0)
-            buyRecords = Array(buyRecords.prefix(5).sorted(by: { $0.price > $1.price }))
+            orderBook?.data.bids.append([price, amount])
+//            buyRecords.insert(entry, at: 0)
+//            buyRecords = Array(buyRecords.prefix(5).sorted(by: { $0.price > $1.price }))
         case .sell:
-            sellRecords.insert(entry, at: 0)
-            sellRecords = Array(sellRecords.prefix(5).sorted(by: { $0.price > $1.price }))
+            orderBook?.data.asks.append([price, amount])
+//            sellRecords.insert(entry, at: 0)
+//            sellRecords = Array(sellRecords.prefix(5).sorted(by: { $0.price > $1.price }))
         }
         availableBalance -= total
         // Reset inputs
         amount = 0.0
         total = 0.0
         isEditing = nil
+        isLoading = false
     }
     
     /// Marks the field currently being edited and clears dependent fields.

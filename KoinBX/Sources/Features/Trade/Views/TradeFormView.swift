@@ -11,7 +11,7 @@ struct TradeFormView: View {
     
     @EnvironmentObject var viewModel: TradeViewModel
     @FocusState var focusState: Field?
-    
+
     var body: some View {
         VStack(spacing: 12) {
             TradeTypeToggleView(selectedType: $viewModel.selectedTradeType)
@@ -44,9 +44,13 @@ struct TradeFormView: View {
                 AvailableBalanceView(balance: viewModel.availableBalance)
             }
             .disabled(viewModel.selectedOrderType == .market)
-
+            
             TradeActionButton(tradeType: viewModel.selectedTradeType,
-                              action: viewModel.submitTrade)
+                              action: {
+                Task {
+                    await viewModel.submitTrade()
+                }
+            })
             .disabled((viewModel.amount <= 0 || viewModel.total <= 0 || viewModel.availableBalance <= 0) && viewModel.selectedOrderType == .limit)
         }
         .onChange(of: focusState) { newValue in
@@ -57,6 +61,7 @@ struct TradeFormView: View {
             viewModel.beginEditing(nil)
         }
     }
+    
 }
 
 #Preview {

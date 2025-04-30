@@ -18,4 +18,13 @@ extension Double {
         let divisor = pow(10.0, Double(places))
         return (self * divisor).rounded() / divisor
     }
+    
+    func formatPrice() -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 8
+        formatter.minimumFractionDigits = 2
+        formatter.minimumIntegerDigits = 1
+        return formatter.string(from: NSNumber(value: self)) ?? "0.00"
+    }
 }

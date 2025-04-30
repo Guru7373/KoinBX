@@ -29,3 +29,12 @@ enum OrderType: String, CaseIterable, Identifiable {
     
     var id: String { rawValue }
 }
+
+struct OrderBookResponse: Decodable {
+    var data: OrderBookData
+}
+
+struct OrderBookData: Decodable {
+    var bids: [[Double]]
+    var asks: [[Double]]
+}

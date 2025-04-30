@@ -29,13 +29,16 @@ struct OrderBookView: View {
             .padding(.bottom, 8)
 
             ScrollView(.vertical, showsIndicators: false) {
-                // Buy orders
-                ForEach(viewModel.sellRecords.prefix(5)) { record in
+                // Sellasks orders
+                let asks = viewModel.orderBook?.data.asks.prefix(5) ?? []
+                ForEach(asks, id: \.self) { record in
+                    let price = record.first?.formatPrice() ?? "0.0"
+                    let amount = record.last?.formatted(.number.precision(.fractionLength(0...5))) ?? "0"
                     HStack {
-                        Text(record.price.formatted(.number.precision(.fractionLength(0...2))))
+                        Text(price)
                             .foregroundColor(.red)
                         Spacer()
-                        Text(record.amount.formatted(.number.precision(.fractionLength(0...5))))
+                        Text(amount)
                     }
                     .font(.caption)
                     .padding(.horizontal, 8)
@@ -55,12 +58,15 @@ struct OrderBookView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
                 // Buy Orders
-                ForEach(viewModel.buyRecords.prefix(5)) { record in
+                let bids = viewModel.orderBook?.data.bids.prefix(5) ?? []
+                ForEach(bids, id: \.self) { record in
                     HStack {
-                        Text(record.price.formatted(.number.precision(.fractionLength(0...2))))
+                        let price = record.first?.formatPrice() ?? "0.0"
+                        let amount = record.last?.formatted(.number.precision(.fractionLength(0...5))) ?? "0"
+                        Text(price)
                             .foregroundColor(.green)
                         Spacer()
-                        Text(record.amount.formatted(.number.precision(.fractionLength(0...5))))
+                        Text(amount)
                     }
                     .font(.caption)
                     .padding(.horizontal, 8)
